@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Faculty Timetable Portal</title>
+<meta name="description" content="Find faculty schedules and free slots easily — Student Access Portal">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════════ */
+:root {
+  --navy:        #0F2744;
+  --navy-mid:    #1A3A5C;
+  --navy-light:  #22487A;
+  --gold:        #E6A817;
+  --gold-dark:   #B8860A;
+  --sky:         #38BDF8;
+  --bg:          #F0F4FA;
+  --surface:     #FFFFFF;
+  --surface2:    #F8FAFD;
+  --border:      #DDE4EF;
+  --border-soft: #EEF2F9;
+  --text:        #111827;
+  --muted:       #6B7280;
+  --muted2:      #9CA3AF;
+  --free-bg:     #F0FDF4;
+  --free-border: #86EFAC;
+  --free-text:   #15803D;
+  --busy-text:   #1E40AF;
+  --radius:      12px;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:   0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+  --shadow-lg:   0 12px 40px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.06);
+
+  /* dept palette */
+  --cse:    #3B82F6; --cse-bg:    #EFF6FF;
+  --math:   #10B981; --math-bg:   #ECFDF5;
+  --phy:    #8B5CF6; --phy-bg:    #F5F3FF;
+  --eng:    #F59E0B; --eng-bg:    #FFFBEB;
+  --eee:    #EF4444; --eee-bg:    #FEF2F2;
+  --mech:   #06B6D4; --mech-bg:   #ECFEFF;
+  --chem:   #EC4899; --chem-bg:   #FDF2F8;
+  --mgmt:   #F97316; --mgmt-bg:   #FFF7ED;
+  --civil:  #84CC16; --civil-bg:  #F7FEE7;
+  --it:     #A855F7; --it-bg:     #FAF5FF;
+}
+
+/* ═══════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+input  { font-family: inherit; outline: none; border: none; }
+
+/* ═══════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════ */
+header {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+  color: white;
+  padding: 0 28px;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 2px 20px rgba(15,39,68,.45);
+  z-index: 100;
+}
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--sky) 100%);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-logo {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--gold) 0%, #F5C542 100%);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 2px 8px rgba(230,168,23,.4);
+  flex-shrink: 0;
+}
+.brand-text .brand-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+.brand-text .brand-sub {
+  font-size: 10.5px;
+  opacity: .6;
+  letter-spacing: 0.2px;
+  margin-top: 1px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hdr-btn {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.18);
+  color: white;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex; align-items: center; gap: 5px;
+  transition: background .15s;
+  cursor: pointer;
+}
+.hdr-btn:hover { background: rgba(255,255,255,.18); }
+.now-badge {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.9);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.3px;
+}
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+.hamburger span {
+  display: block;
+  width: 22px; height: 2px;
+  background: white;
+  border-radius: 2px;
+  transition: all .2s;
+}
+
+/* ═══════════════════════════════════════════════════
+   BODY LAYOUT
+═══════════════════════════════════════════════════ */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ═══════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════ */
+.sidebar {
+  width: 296px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform .25s ease;
+}
+
+.sidebar-top {
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+
+.search-wrap {
+  position: relative;
+}
+.search-wrap svg {
+  position: absolute;
+  left: 11px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted2);
+  pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-size: 13px;
+  color: var(--text);
+  transition: border-color .2s, box-shadow .2s;
+}
+.search-input:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(15,39,68,.1);
+}
+.search-input::placeholder { color: var(--muted2); }
+
+.stats-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.stat-pill {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 8px;
+  text-align: center;
+}
+.stat-pill .stat-val { font-size: 15px; font-weight: 700; color: var(--navy); }
+.stat-pill .stat-lbl { font-size: 9.5px; color: var(--muted); margin-top: 1px; }
+
+.dept-scroll {
+  padding: 10px 14px;
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+.dept-chip {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  transition: all .15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.dept-chip.active {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+  box-shadow: 0 2px 6px rgba(15,39,68,.25);
+}
+.dept-chip:hover:not(.active) { border-color: var(--navy); color: var(--navy); }
+
+.faculty-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+.faculty-list::-webkit-scrollbar { width: 4px; }
+.faculty-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.faculty-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all .15s;
+  margin-bottom: 3px;
+  position: relative;
+}
+.faculty-item:hover { background: var(--bg); }
+.faculty-item.active {
+  background: #EBF1FA;
+  border-color: var(--navy);
+  box-shadow: 0 1px 6px rgba(15,39,68,.1);
+}
+
+.fac-avatar {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-sm);
+}
+.fac-info { flex: 1; min-width: 0; }
+.fac-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fac-dept {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.fac-cabin {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 2px 6px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.no-results {
+  text-align: center;
+  padding: 36px 20px;
+  color: var(--muted);
+}
+.no-results .no-icon { font-size: 36px; margin-bottom: 8px; }
+.no-results p { font-size: 13px; }
+
+/* ═══════════════════════════════════════════════════
+   MAIN AREA
+═══════════════════════════════════════════════════ */
+.main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* EMPTY STATE */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 48px 32px;
+}
+.empty-illustration {
+  width: 110px; height: 110px;
+  background: linear-gradient(135deg, #EBF1FA 0%, #D8E8F8 100%);
+  border-radius: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 52px;
+  box-shadow: 0 4px 20px rgba(15,39,68,.1);
+}
+.empty-title { font-size: 20px; font-weight: 700; color: var(--navy); }
+.empty-desc { font-size: 13.5px; color: var(--muted); max-width: 300px; line-height: 1.7; }
+.quick-picks {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+.quick-pick {
+  padding: 6px 14px;
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--navy);
+  transition: all .15s;
+  box-shadow: var(--shadow-sm);
+}
+.quick-pick:hover {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* FACULTY HEADER STRIP */
+.fac-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 12px;
+}
+.fac-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.fac-header-avatar {
+  width: 50px; height: 50px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-md);
+}
+.fac-header-name { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+.fac-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+.meta-tag {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.fac-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.action-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all .15s;
+  cursor: pointer;
+}
+.btn-outline {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+}
+.btn-outline:hover { border-color: var(--navy); color: var(--navy); }
+.btn-primary {
+  background: var(--navy);
+  border: 1.5px solid var(--navy);
+  color: white;
+}
+.btn-primary:hover { background: var(--navy-light); }
+
+/* TIMETABLE SCROLL AREA */
+.timetable-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 24px;
+}
+.timetable-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+.timetable-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.timetable-inner { min-width: 680px; }
+
+/* ─── THE TABLE ─── */
+.tt {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  background: var(--surface);
+}
+.tt thead tr th {
+  background: var(--navy);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 13px 6px;
+  text-align: center;
+  white-space: nowrap;
+  border: none;
+}
+.tt thead tr th.time-head {
+  background: #0A1E36;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  width: 80px;
+}
+.tt thead tr th.today-head {
+  background: #1E50A0;
+}
+.today-label { display: flex; align-items: center; justify-content: center; gap: 4px; }
+
+/* BODY ROWS */
+.tt tbody tr.break-row td {
+  background: linear-gradient(90deg, var(--navy) 0%, var(--navy-mid) 100%);
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  letter-spacing: 2px;
+  padding: 5px;
+  height: 20px;
+  border: none;
+}
+.tt tbody tr.slot-row td {
+  border: 1px solid var(--border-soft);
+  height: 70px;
+  padding: 0;
+  vertical-align: stretch;
+  transition: background .12s;
+}
+.tt tbody tr.slot-row td.time-td {
+  background: #F8FAFD;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  border-right: 2px solid var(--border);
+  line-height: 1.5;
+  padding: 6px 4px;
+  vertical-align: middle;
+}
+.tt tbody tr.slot-row td.today-td { background: #F5F9FF; }
+
+/* FREE CELL */
+.free-cell {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px 6px;
+}
+.free-inner {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px dashed var(--free-border);
+  border-radius: 8px;
+  background: var(--free-bg);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--free-text);
+  gap: 4px;
+  transition: all .15s;
+}
+.tt tbody tr.slot-row td:hover .free-inner {
+  background: #DCFCE7;
+  border-color: #4ADE80;
+}
+
+/* CLASS CELL */
+.class-cell {
+  width: 100%; height: 100%;
+  padding: 7px 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+  transition: filter .15s;
+}
+.class-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: .08;
+  pointer-events: none;
+}
+.class-cell:hover { filter: brightness(.97); }
+.class-cell .c-subj {
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.class-cell .c-room {
+  font-size: 9.5px;
+  font-family: 'JetBrains Mono', monospace;
+  opacity: .7;
+  margin-top: 1px;
+}
+.class-cell .c-batch {
+  font-size: 9px;
+  font-weight: 600;
+  opacity: .6;
+  margin-top: 2px;
+}
+
+/* LAB INDICATOR */
+.lab-badge {
+  display: inline-block;
+  background: rgba(0,0,0,.15);
+  border-radius: 3px;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 4px;
+  letter-spacing: .5px;
+  vertical-align: middle;
+  margin-left: 3px;
+}
+
+/* FOOTER STRIP */
+.footer-strip {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.footer-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.free-tag {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--free-bg);
+  border: 1px solid var(--free-border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--free-text);
+}
+.legend-area {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
+.leg {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.leg-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* TOOLTIP */
+.tooltip-container { position: relative; }
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--navy);
+  color: white;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  z-index: 200;
+  box-shadow: var(--shadow-md);
+}
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--navy);
+}
+.tooltip-container:hover .tooltip { opacity: 1; }
+
+/* PRINT STYLES */
+@media print {
+  header, .sidebar, .footer-strip, .action-btn, .hamburger { display: none !important; }
+  .app-body { display: block; }
+  .main { display: block; }
+  .timetable-scroll { overflow: visible; padding: 0; }
+  .timetable-inner { min-width: 0; }
+  .fac-header { padding: 12px 0; }
+  body { font-size: 11px; }
+  .tt { box-shadow: none; border: 1px solid #ccc; }
+  .tt thead tr th { background: #1A3A5C !important; -webkit-print-color-adjust: exact; }
+}
+
+/* ═══════════════════════════════════════════════════
+   OVERLAY + MOBILE
+═══════════════════════════════════════════════════ */
+.overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 99;
+}
+
+@media (max-width: 720px) {
+  header { padding: 0 16px; height: 58px; }
+  .hamburger { display: flex; }
+  .now-badge { display: none; }
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100%;
+    z-index: 200;
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+  .overlay.open { display: block; }
+  .timetable-scroll { padding: 12px; }
+  .fac-header { padding: 12px 14px; }
+  .fac-header-right { display: none; }
+  .footer-strip { padding: 8px 14px; }
+  .legend-area { display: none; }
+  .main { overflow-x: auto; }
+}
+
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════ */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .45; }
+}
+.animate-in { animation: slideUp .25s ease both; }
+.pulsing { animation: pulse 2s ease-in-out infinite; }
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: white;
+  border-radius: 18px;
+  padding: 28px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp .2s ease both;
+}
+.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+.modal-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+.modal-icon { font-size: 18px; }
+.modal-info-label { font-size: 10px; color: var(--muted); font-weight: 500; }
+.modal-info-val { font-size: 13px; font-weight: 600; margin-top: 1px; }
+.modal-close {
+  margin-top: 18px;
+  width: 100%;
+  padding: 10px;
+  background: var(--navy);
+  color: white;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background .15s;
+}
+.modal-close:hover { background: var(--navy-light); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="brand">
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="brand-logo">🎓</div>
+    <div class="brand-text">
+      <div class="brand-name">Faculty Timetable Portal</div>
+      <div class="brand-sub">Student Access — Academic Year 2025–26</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="now-badge" id="nowBadge"></div>
+    <button class="hdr-btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</header>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="app-body">
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="search-wrap">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-input" type="text" id="searchInput"
+          placeholder="Search name, dept, cabin…" oninput="filterFaculty()" autocomplete="off">
+      </div>
+      <div class="stats-row">
+        <div class="stat-pill">
+          <div class="stat-val" id="statTotal">0</div>
+          <div class="stat-lbl">Faculty</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-val" id="statFreeNow">0</div>
+          <div class="stat-lbl">Free Now</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-val" id="statDepts">0</div>
+          <div class="stat-lbl">Depts</div>
+        </div>
+      </div>
+    </div>
+    <div class="dept-scroll" id="deptFilter"></div>
+    <div class="faculty-list" id="facultyList"></div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div class="main" id="mainArea">
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-illustration">📅</div>
+      <div class="empty-title">Select a Faculty Member</div>
+      <div class="empty-desc">Browse the list or search to find a faculty member. Click their card to view their full weekly timetable and free slots.</div>
+      <div class="quick-picks" id="quickPicks"></div>
+    </div>
+
+    <!-- Timetable View -->
+    <div id="ttView" style="display:none; flex-direction:column; height:100%; overflow:hidden;">
+      <div class="fac-header" id="facHeader"></div>
+      <div class="timetable-scroll">
+        <div class="timetable-inner">
+          <table class="tt" id="ttGrid"></table>
+        </div>
+      </div>
+      <div class="footer-strip" id="footerStrip"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   DATA
+════════════════════════════════════════════ */
+const DEPT_COLORS = {
+  CSE:    '#3B82F6', MATH:  '#10B981', PHYSICS: '#8B5CF6',
+  ENGLISH:'#F59E0B', EEE:   '#EF4444', MECH:    '#06B6D4',
+  CHEM:   '#EC4899', MGMT:  '#F97316', CIVIL:   '#84CC16',
+  IT:     '#A855F7'
+};
+
+const TIME_SLOTS = [
+  { label:'9:00\n9:50',    id:'P1' },
+  { label:'9:50\n10:40',   id:'P2' },
+  { label:'BREAK',         id:'B1' },
+  { label:'10:55\n11:45',  id:'P3' },
+  { label:'11:45\n12:35',  id:'P4' },
+  { label:'BREAK',         id:'B2' },
+  { label:'1:30\n2:20',    id:'P5' },
+  { label:'2:20\n3:10',    id:'P6' },
+  { label:'3:10\n4:00',    id:'P7' },
+];
+
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+/* 
+  Slot index mapping (non-break): 0,1 = P1,P2 | 2,3 = P3,P4 | 4,5,6 = P5,P6,P7
+  In TIME_SLOTS array: index 0,1 = P1,P2 | index 2 = BREAK | index 3,4 = P3,P4 | index 5 = BREAK | index 6,7,8 = P5,P6,P7
+*/
+
+const FACULTY = [
+  {
+    id:1, name:'Dr. Sunita Rao', short:'Sunita Rao', dept:'CSE', cabin:'CS-104',
+    email:'sunita.rao@college.edu', phone:'+91 98765 43210', qual:'Ph.D. (IIT Delhi)',
+    timetable:{
+      Monday:   [null,{sub:'Data Structures',room:'CS-201',batch:'CSE-A'},null,{sub:'DBMS',room:'CS-302',batch:'CSE-B'},null,null,{sub:'Lab',room:'CS-Lab1',batch:'CSE-A',lab:true},{sub:'Lab',room:'CS-Lab1',batch:'CSE-A',lab:true},null],
+      Tuesday:  [{sub:'Data Structures',room:'CS-201',batch:'CSE-B'},null,null,{sub:'Data Structures',room:'CS-201',batch:'CSE-A'},null,null,null,{sub:'DBMS',room:'CS-302',batch:'CSE-A'},null],
+      Wednesday:[null,{sub:'DBMS',room:'CS-302',batch:'CSE-B'},null,null,{sub:'Data Structures',room:'CS-201',batch:'CSE-B'},null,{sub:'Lab',room:'CS-Lab1',batch:'CSE-B',lab:true},{sub:'Lab',room:'CS-Lab1',batch:'CSE-B',lab:true},null],
+      Thursday: [{sub:'DBMS',room:'CS-302',batch:'CSE-A'},null,null,{sub:'DBMS',room:'CS-302',batch:'CSE-B'},null,null,null,null,{sub:'Tutorial',room:'CS-104',batch:'CSE-A'}],
+      Friday:   [null,{sub:'Data Structures',room:'CS-201',batch:'CSE-A'},null,null,null,null,null,null,null],
+      Saturday: [null,null,null,null,null,null,null,null,null],
+    }
+  },
+  {
+    id:2, name:'Prof. Rajan Mehta', short:'Rajan Mehta', dept:'MATH', cabin:'MT-202',
+    email:'rajan.mehta@college.edu', phone:'+91 97654 32109', qual:'M.Sc. (TIFR), Ph.D.',
+    timetable:{
+      Monday:   [{sub:'Calculus',room:'LH-1',batch:'1st Year'},null,null,null,{sub:'Linear Algebra',room:'LH-3',batch:'2nd Year'},null,null,{sub:'Calculus',room:'LH-1',batch:'1st Year'},null],
+      Tuesday:  [null,{sub:'Linear Algebra',room:'LH-3',batch:'2nd Year'},null,{sub:'Calculus',room:'LH-1',batch:'1st Year'},null,null,{sub:'Linear Algebra',room:'LH-3',batch:'2nd Year'},null,null],
+      Wednesday:[null,null,null,{sub:'Calculus',room:'LH-1',batch:'1st Year'},{sub:'Calculus',room:'LH-1',batch:'1st Year'},null,null,{sub:'Linear Algebra',room:'LH-3',batch:'2nd Year'},null],
+      Thursday: [{sub:'Linear Algebra',room:'LH-3',batch:'2nd Year'},{sub:'Calculus',room:'LH-1',batch:'1st Year'},null,null,null,null,{sub:'Calculus',room:'LH-1',batch:'1st Year'},null,null],
+      Friday:   [null,null,null,{sub:'Linear Algebra',room:'LH-3',batch:'2nd Year'},null,null,null,{sub:'Calculus',room:'LH-1',batch:'1st Year'},{sub:'Linear Algebra',room:'LH-3',batch:'2nd Year'}],
+      Saturday: [null,null,null,null,null,null,null,null,null],
+    }
+  },
+  {
+    id:3, name:'Dr. Kavitha Nair', short:'Kavitha Nair', dept:'PHYSICS', cabin:'PH-305',
+    email:'kavitha.nair@college.edu', phone:'+91 96543 21098', qual:'Ph.D. (IISc Bangalore)',
+    timetable:{
+      Monday:   [null,{sub:'Engg. Physics',room:'PH-101',batch:'ME-A'},null,{sub:'Engg. Physics',room:'PH-101',batch:'EEE-B'},null,null,null,null,{sub:'Lab',room:'PH-Lab',batch:'ME-A',lab:true}],
+      Tuesday:  [{sub:'Engg. Physics',room:'PH-101',batch:'ME-B'},null,null,null,{sub:'Engg. Physics',room:'PH-101',batch:'ME-A'},null,null,{sub:'Lab',room:'PH-Lab',batch:'ME-B',lab:true},{sub:'Lab',room:'PH-Lab',batch:'ME-B',lab:true}],
+      Wednesday:[null,null,null,{sub:'Engg. Physics',room:'PH-101',batch:'EEE-A'},null,null,{sub:'Engg. Physics',room:'PH-101',batch:'ME-B'},null,null],
+      Thursday: [{sub:'Engg. Physics',room:'PH-101',batch:'EEE-B'},null,null,{sub:'Engg. Physics',room:'PH-101',batch:'EEE-A'},{sub:'Engg. Physics',room:'PH-101',batch:'ME-B'},null,{sub:'Lab',room:'PH-Lab',batch:'EEE-A',lab:true},{sub:'Lab',room:'PH-Lab',batch:'EEE-A',lab:true},null],
+      Friday:   [null,{sub:'Engg. Physics',room:'PH-101',batch:'EEE-B'},null,null,null,null,null,null,null],
+      Saturday: [null,null,null,null,null,null,null,null,null],
+    }
+  },
+  {
+    id:4, name:'Mr. Aditya Kumar', short:'Aditya Kumar', dept:'EEE', cabin:'EE-108',
+    email:'aditya.kumar@college.edu', phone:'+91 95432 10987', qual:'M.Tech (NIT Warangal)',
+    timetable:{
+      Monday:   [{sub:'Circuit Theory',room:'EE-201',batch:'EEE-A'},null,null,{sub:'Circuit Theory',room:'EE-201',batch:'EEE-B'},null,null,{sub:'Lab',room:'EE-Lab',batch:'EEE-A',lab:true},{sub:'Lab',room:'EE-Lab',batch:'EEE-A',lab:true},null],
+      Tuesday:  [null,{sub:'Machines',room:'EE-202',batch:'EEE-A'},null,null,{sub:'Circuit Theory',room:'EE-201',batch:'EEE-A'},null,null,null,{sub:'Machines',room:'EE-202',batch:'EEE-B'}],
+      Wednesday:[{sub:'Machines',room:'EE-202',batch:'EEE-B'},null,null,{sub:'Machines',room:'EE-202',batch:'EEE-A'},null,null,{sub:'Lab',room:'EE-Lab',batch:'EEE-B',lab:true},{sub:'Lab',room:'EE-Lab',batch:'EEE-B',lab:true},null],
+      Thursday: [null,{sub:'Circuit Theory',room:'EE-201',batch:'EEE-B'},null,null,{sub:'Machines',room:'EE-202',batch:'EEE-A'},null,null,{sub:'Circuit Theory',room:'EE-201',batch:'EEE-A'},null],
+      Friday:   [{sub:'Circuit Theory',room:'EE-201',batch:'EEE-B'},null,null,{sub:'Machines',room:'EE-202',batch:'EEE-B'},null,null,null,null,null],
+      Saturday: [null,null,null,null,null,null,null,null,null],
+    }
+  },
+  {
+    id:5, name:'Dr. Priya Sharma', short:'Priya Sharma', dept:'CSE', cabin:'CS-110',
+    email:'priya.sharma@college.edu', phone:'+91 94321 09876', qual:'Ph.D. (IIIT Hyderabad)',
+    timetable:{
+      Monday:   [{sub:'Operating Systems',room:'CS-203',batch:'CSE-B'},null,null,{sub:'Operating Systems',room:'CS-203',batch:'CSE-A'},null,null,{sub:'Lab',room:'CS-Lab2',batch:'CSE-A',lab:true},{sub:'Lab',room:'CS-Lab2',batch:'CSE-A',lab:true},null],
+      Tuesday:  [null,{sub:'Comp. Networks',room:'CS-204',batch:'CSE-A'},null,{sub:'Comp. Networks',room:'CS-204',batch:'CSE-B'},null,null,null,{sub:'Operating Systems',room:'CS-203',batch:'CSE-B'},null],
+      Wednesday:[{sub:'Comp. Networks',room:'CS-204',batch:'CSE-A'},null,null,null,{sub:'Operating Systems',room:'CS-203',batch:'CSE-A'},null,{sub:'Lab',room:'CS-Lab2',batch:'CSE-B',lab:true},{sub:'Lab',room:'CS-Lab2',batch:'CSE-B',lab:true},null],
+      Thursday: [null,{sub:'Operating Systems',room:'CS-203',batch:'CSE-B'},null,{sub:'Comp. Networks',room:'CS-204',batch:'CSE-A'},null,null,{sub:'Comp. Networks',room:'CS-204',batch:'CSE-B'},null,null],
+      Friday:   [{sub:'Operating Systems',room:'CS-203',batch:'CSE-A'},null,null,{sub:'Comp. Networks',room:'CS-204',batch:'CSE-B'},null,null,null,null,null],
+      Saturday: [null,null,null,null,null,null,null,null,null],
+    }
+  },
+  {
+    id:6, name:'Ms. Anusha Reddy', short:'Anusha Reddy', dept:'ENGLISH', cabin:'HM-201',
+    email:'anusha.reddy@college.edu', phone:'+91 93210 98765', qual:'M.A. English (OU)',
+    timetable:{
+      Monday:   [{sub:'Tech. English',room:'LH-5',batch:'1st Yr-A'},{sub:'Tech. English',room:'LH-5',batch:'1st Yr-B'},null,null,null,null,{sub:'Tech. English',room:'LH-5',batch:'1st Yr-C'},null,null],
+      Tuesday:  [null,null,null,{sub:'Tech. English',room:'LH-5',batch:'1st Yr-A'},{sub:'Tech. English',room:'LH-5',batch:'1st Yr-C'},null,null,null,null],
+      Wednesday:[{sub:'Tech. English',room:'LH-5',batch:'1st Yr-B'},null,null,null,{sub:'Tech. English',room:'LH-5',batch:'1st Yr-A'},null,null,{sub:'Tech. English',room:'LH-5',batch:'1st Yr-B'},null],
+      Thursday: [null,{sub:'Tech. English',room:'LH-5',batch:'1st Yr-C'},null,{sub:'Tech. English',room:'LH-5',batch:'1st Yr-B'},null,null,null,null,null],
+      Friday:   [{sub:'Tech. English',room:'LH-5',batch:'1st Yr-A'},null,null,null,null,null,{sub:'Tech. English',room:'LH-5',batch:'1st Yr-C'},null,null],
+      Saturday: [null,null,null,null,null,null,null,null,null],
+    }
+  },
+  {
+    id:7, name:'Dr. Venkat Rao', short:'Venkat Rao', dept:'MECH', cabin:'ME-302',
+    email:'venkat.rao@college.edu', phone:'+91 92109 87654', qual:'Ph.D. (IIT Madras)',
+    timetable:{
+      Monday:   [null,{sub:'Thermodynamics',room:'ME-101',batch:'MECH-A'},null,{sub:'Thermodynamics',room:'ME-101',batch:'MECH-B'},null,null,{sub:'Lab',room:'ME-Lab',batch:'MECH-A',lab:true},{sub:'Lab',room:'ME-Lab',batch:'MECH-A',lab:true},null],
+      Tuesday:  [{sub:'Fluid Mechanics',room:'ME-102',batch:'MECH-B'},null,null,null,{sub:'Thermodynamics',room:'ME-101',batch:'MECH-A'},null,null,{sub:'Fluid Mechanics',room:'ME-102',batch:'MECH-A'},null],
+      Wednesday:[{sub:'Thermodynamics',room:'ME-101',batch:'MECH-B'},{sub:'Fluid Mechanics',room:'ME-102',batch:'MECH-A'},null,null,null,null,{sub:'Lab',room:'ME-Lab',batch:'MECH-B',lab:true},{sub:'Lab',room:'ME-Lab',batch:'MECH-B',lab:true},null],
+      Thursday: [null,null,null,{sub:'Fluid Mechanics',room:'ME-102',batch:'MECH-B'},{sub:'Fluid Mechanics',room:'ME-102',batch:'MECH-A'},null,{sub:'Thermodynamics',room:'ME-101',batch:'MECH-B'},null,null],
+      Friday:   [{sub:'Fluid Mechanics',room:'ME-102',batch:'MECH-A'},{sub:'Thermodynamics',room:'ME-101',batch:'MECH-A'},null,null,{sub:'Fluid Mechanics',room:'ME-102',batch:'MECH-B'},null,null,null,null],
+      Saturday: [null,null,null,null,null,null,null,null,null],
+    }
+  },
+  {
+    id:8, name:'Dr. Lakshmi Devi', short:'Lakshmi Devi', dept:'CHEM', cabin:'CH-103',
+    email:'lakshmi.devi@college.edu', phone:'+91 91098 76543', qual:'Ph.D. (Osmania University)',
+    timetable:{
+      Monday:   [{sub:'Engg. Chemistry',room:'CH-201',batch:'CSE-A'},null,null,{sub:'Engg. Chemistry',room:'CH-201',batch:'EEE-A'},null,null,null,{sub:'Lab',room:'CH-Lab',batch:'CSE-A',lab:true},{sub:'Lab',room:'CH-Lab',batch:'CSE-A',lab:true}],
+      Tuesday:  [null,{sub:'Engg. Chemistry',room:'CH-201',batch:'MECH-A'},null,null,{sub:'Engg. Chemistry',room:'CH-201',batch:'CSE-A'},null,{sub:'Lab',room:'CH-Lab',batch:'EEE-A',lab:true},{sub:'Lab',room:'CH-Lab',batch:'EEE-A',lab:true},null],
+      Wednesday:[{sub:'Engg. Chemistry',room:'CH-201',batch:'EEE-B'},null,null,{sub:'Engg. Chemistry',room:'CH-201',batch:'MECH-A'},null,null,null,null,null],
+      Thursday: [null,{sub:'Engg. Chemistry',room:'CH-201',batch:'EEE-A'},null,null,{sub:'Engg. Chemistry',room:'CH-201',batch:'EEE-B'},null,{sub:'Lab',room:'CH-Lab',batch:'MECH-A',lab:true},{sub:'Lab',room:'CH-Lab',batch:'MECH-A',lab:true},null],
+      Friday:   [{sub:'Engg. Chemistry',room:'CH-201',batch:'EEE-B'},null,null,{sub:'Engg. Chemistry',room:'CH-201',batch:'CSE-B'},null,null,null,null,null],
+      Saturday: [null,null,null,null,null,null,null,null,null],
+    }
+  },
+];
+
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let selectedFaculty = null;
+let activeDept = 'All';
+let searchQ = '';
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+function init() {
+  updateClock();
+  setInterval(updateClock, 30000);
+  buildDeptFilter();
+  renderFacultyList();
+  buildQuickPicks();
+  updateStats();
+}
+
+function updateClock() {
+  const now = new Date();
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const h = now.getHours(), m = now.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hh = ((h % 12) || 12).toString().padStart(2,'0');
+  const mm = m.toString().padStart(2,'0');
+  document.getElementById('nowBadge').textContent =
+    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} · ${hh}:${mm} ${ampm}`;
+  updateStats();
+}
+
+function getCurrentPeriodIdx() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const mins = h * 60 + m;
+  const ranges = [
+    [540,590],[590,640], // 9-9:50, 9:50-10:40
+    [655,705],[705,755], // 10:55-11:45, 11:45-12:35
+    [810,860],[860,910],[910,960] // 1:30-2:20, 2:20-3:10, 3:10-4:00
+  ];
+  // map to TIME_SLOTS indices: 0,1,3,4,6,7,8
+  const slotIndices = [0,1,3,4,6,7,8];
+  for (let i = 0; i < ranges.length; i++) {
+    if (mins >= ranges[i][0] && mins < ranges[i][1]) return slotIndices[i];
+  }
+  return -1;
+}
+
+function isFacultyFreeNow(f) {
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayName = dayNames[new Date().getDay()];
+  const pIdx = getCurrentPeriodIdx();
+  if (pIdx === -1) return true; // outside hours
+  if (!f.timetable[dayName]) return true;
+  return !f.timetable[dayName][pIdx];
+}
+
+function updateStats() {
+  const freeNow = FACULTY.filter(isFacultyFreeNow).length;
+  const depts = new Set(FACULTY.map(f => f.dept)).size;
+  document.getElementById('statTotal').textContent = FACULTY.length;
+  document.getElementById('statFreeNow').textContent = freeNow;
+  document.getElementById('statDepts').textContent = depts;
+}
+
+function buildDeptFilter() {
+  const depts = ['All', ...Object.keys(DEPT_COLORS).filter(d => FACULTY.some(f => f.dept === d))];
+  const el = document.getElementById('deptFilter');
+  el.innerHTML = depts.map(d =>
+    `<span class="dept-chip ${d==='All'?'active':''}" onclick="setDept('${d}')">${d}</span>`
+  ).join('');
+}
+
+function buildQuickPicks() {
+  const el = document.getElementById('quickPicks');
+  const picks = FACULTY.slice(0, 5);
+  el.innerHTML = `<div style="width:100%;text-align:center;font-size:12px;color:var(--muted);margin-bottom:4px;">Quick access:</div>` +
+    picks.map(f =>
+      `<button class="quick-pick" onclick="selectFaculty(${f.id})">${f.short}</button>`
+    ).join('');
+}
+
+function setDept(dept) {
+  activeDept = dept;
+  document.querySelectorAll('.dept-chip').forEach(c =>
+    c.classList.toggle('active', c.textContent === dept)
+  );
+  renderFacultyList();
+}
+
+function filterFaculty() {
+  searchQ = document.getElementById('searchInput').value.toLowerCase();
+  renderFacultyList();
+}
+
+function getInitials(name) {
+  return name.replace(/^(Dr\.|Prof\.|Mr\.|Ms\.)\s*/,'')
+    .split(' ').slice(0,2).map(n => n[0]).join('');
+}
+
+function renderFacultyList() {
+  const filtered = FACULTY.filter(f => {
+    const matchDept = activeDept === 'All' || f.dept === activeDept;
+    const matchSearch = !searchQ ||
+      f.name.toLowerCase().includes(searchQ) ||
+      f.dept.toLowerCase().includes(searchQ) ||
+      f.cabin.toLowerCase().includes(searchQ) ||
+      (f.qual && f.qual.toLowerCase().includes(searchQ));
+    return matchDept && matchSearch;
+  });
+
+  const list = document.getElementById('facultyList');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="no-results"><div class="no-icon">🔍</div><p>No faculty found</p></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(f => {
+    const color = DEPT_COLORS[f.dept] || '#64748B';
+    const isFree = isFacultyFreeNow(f);
+    const isActive = selectedFaculty && selectedFaculty.id === f.id;
+    const initials = getInitials(f.name);
+    return `<div class="faculty-item ${isActive?'active':''}" onclick="selectFaculty(${f.id})">
+      <div class="fac-avatar" style="background:${color}">${initials}</div>
+      <div class="fac-info">
+        <div class="fac-name">${f.name}</div>
+        <div class="fac-dept">
+          <span class="status-dot ${isFree?'pulsing':''}"
+            style="background:${isFree?'#22C55E':'#EF4444'}"></span>
+          ${f.dept} · ${isFree?'<span style="color:#15803D;font-weight:600">Free now</span>':'<span style="color:#991B1B">In class</span>'}
+        </div>
+      </div>
+      <div class="fac-cabin">${f.cabin}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════
+   SELECT FACULTY & RENDER TIMETABLE
+════════════════════════════════════════════ */
+function selectFaculty(id) {
+  selectedFaculty = FACULTY.find(f => f.id === id);
+  renderFacultyList();
+  renderTimetable();
+  // close sidebar on mobile
+  if (window.innerWidth <= 720) toggleSidebar(false);
+}
+
+function renderTimetable() {
+  if (!selectedFaculty) return;
+  const f = selectedFaculty;
+  const color = DEPT_COLORS[f.dept] || '#64748B';
+  const initials = getInitials(f.name);
+  const isFree = isFacultyFreeNow(f);
+
+  document.getElementById('emptyState').style.display = 'none';
+  const view = document.getElementById('ttView');
+  view.style.display = 'flex';
+  view.classList.remove('animate-in');
+  void view.offsetWidth; // force reflow
+  view.classList.add('animate-in');
+
+  // ── FACULTY HEADER ──
+  document.getElementById('facHeader').innerHTML = `
+    <div class="fac-header-left">
+      <div class="fac-header-avatar" style="background:${color}">${initials}</div>
+      <div>
+        <div class="fac-header-name">${f.name}</div>
+        <div class="fac-header-meta">
+          <span class="meta-tag">🏢 ${f.dept}</span>
+          <span class="meta-tag">📍 ${f.cabin}</span>
+          <span class="meta-tag">🎓 ${f.qual}</span>
+          <span class="meta-tag" style="color:${isFree?'#15803D':'#991B1B'};font-weight:600;">
+            ${isFree?'🟢 Free Right Now':'🔴 Currently in Class'}
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="fac-header-right">
+      <button class="action-btn btn-outline" onclick="showContact(${f.id})">📞 Contact</button>
+      <button class="action-btn btn-primary" onclick="window.print()">🖨️ Print</button>
+    </div>
+  `;
+
+  // ── TIMETABLE ──
+  const todayIdx = new Date().getDay() - 1; // 0=Mon .. 5=Sat (-1 = Sun)
+  const currentSlot = getCurrentPeriodIdx();
+
+  let html = '<thead><tr>';
+  html += `<th class="time-head">Period</th>`;
+  DAYS.forEach((day, di) => {
+    const isToday = di === todayIdx;
+    html += `<th class="${isToday?'today-head':''}">
+      ${isToday?`<div class="today-label">⭐ ${day}</div>`:day}
+    </th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  let slotDataIdx = 0; // index into the 9-element timetable array
+
+  TIME_SLOTS.forEach((slot, si) => {
+    if (slot.label === 'BREAK') {
+      html += `<tr class="break-row"><td colspan="7">— LUNCH / BREAK —</td></tr>`;
+      // don't increment slotDataIdx for breaks
+      return;
+    }
+
+    const isCurrentSlot = slotDataIdx === currentSlot;
+    const rowStyle = isCurrentSlot ? 'box-shadow:inset 3px 0 0 var(--gold);' : '';
+
+    html += `<tr class="slot-row" style="${rowStyle}">`;
+    html += `<td class="time-td">${slot.label.replace('\n','<br>')}${isCurrentSlot?'<br><span style="font-size:8px;color:var(--gold);font-weight:700;">NOW</span>':''}</td>`;
+
+    DAYS.forEach((day, di) => {
+      const isToday = di === todayIdx;
+      const cls = f.timetable[day] ? f.timetable[day][slotDataIdx] : null;
+
+      if (cls) {
+        const bg = color;
+        const isLab = cls.lab;
+        html += `<td class="${isToday?'today-td':''}">
+          <div class="class-cell" style="background:${bg}15; border-left:3px solid ${bg};">
+            <div class="c-subj" style="color:${bg}">
+              ${cls.sub}${isLab?`<span class="lab-badge" style="background:${bg}">LAB</span>`:''}
+            </div>
+            <div class="c-room">🚪 ${cls.room}</div>
+            <div class="c-batch">👥 ${cls.batch}</div>
+          </div>
+        </td>`;
+      } else {
+        html += `<td class="${isToday?'today-td':''} tooltip-container">
+          <div class="free-cell">
+            <div class="free-inner">✅ Free</div>
+          </div>
+          <div class="tooltip">Available — visit ${f.cabin}</div>
+        </td>`;
+      }
+    });
+
+    html += '</tr>';
+    slotDataIdx++;
+  });
+
+  html += '</tbody>';
+  document.getElementById('ttGrid').innerHTML = html;
+
+  // ── FOOTER ──
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const todayName = dayNames[new Date().getDay()];
+  const freeSlots = [];
+  DAYS.forEach((day, di) => {
+    if (di === 5) return;
+    let count = 0;
+    let dataIdx = 0;
+    TIME_SLOTS.forEach(slot => {
+      if (slot.label === 'BREAK') return;
+      if (f.timetable[day] && !f.timetable[day][dataIdx]) count++;
+      dataIdx++;
+    });
+    if (count > 0) freeSlots.push({ day: day.slice(0,3), count });
+  });
+
+  document.getElementById('footerStrip').innerHTML = `
+    <span class="footer-label">Free slots this week:</span>
+    ${freeSlots.map(fs =>
+      `<span class="free-tag">📅 ${fs.day}: ${fs.count} free</span>`
+    ).join('')}
+    <div class="legend-area">
+      <div class="leg"><div class="leg-dot" style="background:${color}"></div> Class</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--free-border)"></div> Free</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--gold)"></div> Now</div>
+    </div>
+  `;
+}
+
+/* ════════════════════════════════════════════
+   CONTACT MODAL
+════════════════════════════════════════════ */
+function showContact(id) {
+  const f = FACULTY.find(x => x.id === id);
+  const color = DEPT_COLORS[f.dept] || '#64748B';
+  const initials = getInitials(f.name);
+  const isFree = isFacultyFreeNow(f);
+
+  document.getElementById('modalContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:${color};display:flex;align-items:center;justify-content:center;color:white;font-size:20px;font-weight:800;">${initials}</div>
+      <div>
+        <div class="modal-title">${f.name}</div>
+        <div class="modal-sub">${f.dept} Department · ${f.qual}</div>
+      </div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-icon">📧</div>
+      <div><div class="modal-info-label">EMAIL</div><div class="modal-info-val">${f.email}</div></div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-icon">📞</div>
+      <div><div class="modal-info-label">PHONE</div><div class="modal-info-val">${f.phone}</div></div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-icon">📍</div>
+      <div><div class="modal-info-label">CABIN / ROOM</div><div class="modal-info-val">${f.cabin}</div></div>
+    </div>
+    <div class="modal-row" style="background:${isFree?'var(--free-bg)':'#FEF2F2'};border-color:${isFree?'var(--free-border)':'#FCA5A5'}">
+      <div class="modal-icon">${isFree?'🟢':'🔴'}</div>
+      <div><div class="modal-info-label">CURRENT STATUS</div>
+      <div class="modal-info-val" style="color:${isFree?'var(--free-text)':'#991B1B'}">${isFree?'Free — You can visit now!':'Currently in class'}</div></div>
+    </div>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  `;
+  document.getElementById('contactModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('contactModal').classList.remove('open');
+}
+document.getElementById('contactModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+/* ════════════════════════════════════════════
+   SIDEBAR TOGGLE (MOBILE)
+════════════════════════════════════════════ */
+function toggleSidebar(forceState) {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const isOpen = typeof forceState === 'boolean' ? forceState : !sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', isOpen);
+  overlay.classList.toggle('open', isOpen);
+}
+
+/* ════════════════════════════════════════════
+   START
+════════════════════════════════════════════ */
+init();
+</script>
+</body>
+</html>
